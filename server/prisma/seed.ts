@@ -1,29 +1,52 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import prisma from "../src/utils/prisma";
+import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient({});
+const users = [
+    {
+        name: "Super Admin",
+        email: "admin@phc.com",
+        role: "ADMIN"
+    },
+    {
+        name: "Doctor One",
+        email: "doctor@phc.com",
+        role: "DOCTOR"
+    },
+    {
+        name: "Lab Tech",
+        email: "lab@phc.com",
+        role: "LAB_TECH"
+    },
+    {
+        name: "Pharmacist",
+        email: "pharma@phc.com",
+        role: "PHARMACIST"
+    }
+];
 
 async function main() {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash("admin123", 10);
 
-    const admin = await prisma.user.upsert({
-        where: { email: 'admin@phc.com' },
-        update: {},
-        create: {
-            email: 'admin@phc.com',
-            name: 'Admin User',
-            password: hashedPassword,
-            role: 'ADMIN',
-        },
-    });
+    const seeded = await Promise.all(
+        users.map((user) =>
+            prisma.user.create({
+                data: {
+                    ...user,
+                    password: hashedPassword
+                }
+            })
+        )
+    );
 
-    console.log({ admin });
+    console.log(
+        "✅ Seeded users:",
+        seeded.map((u) => ({ email: u.email, role: u.role }))
+    );
 }
 
 main()
     .catch((e) => {
-        console.error(e);
-        process.exit(1);
+        console.error("❌ Seeding failed:", e);
     })
     .finally(async () => {
         await prisma.$disconnect();

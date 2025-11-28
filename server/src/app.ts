@@ -7,6 +7,7 @@ import opdRoutes from './routes/opd';
 import labRoutes from './routes/lab';
 import pharmacyRoutes from './routes/pharmacy';
 import bedRoutes from './routes/beds';
+import reportRoutes from './routes/reports';
 import { authenticateToken, requireRole } from './middleware/auth';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/opd', authenticateToken, requireRole(['ADMIN', 'NURSE', 'DOCTOR'])
 app.use('/api/lab', authenticateToken, requireRole(['ADMIN', 'LAB_TECH', 'DOCTOR']), labRoutes);
 app.use('/api/pharmacy', authenticateToken, requireRole(['ADMIN', 'PHARMACIST']), pharmacyRoutes);
 app.use('/api/beds', authenticateToken, requireRole(['ADMIN', 'NURSE', 'DOCTOR']), bedRoutes);
+app.use('/api/reports', authenticateToken, reportRoutes);
 
 app.get('/', (req, res) => {
     res.send('PHC DOS API is running');

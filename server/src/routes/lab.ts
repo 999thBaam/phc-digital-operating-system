@@ -1,5 +1,7 @@
 import express from 'express';
 import prisma from '../utils/prisma';
+import { AuthRequest } from '../middleware/auth';
+import { recordAudit } from '../utils/auditLogger';
 
 const router = express.Router();
 
@@ -21,7 +23,7 @@ router.get('/orders', async (req, res) => {
 });
 
 // Complete Lab Order (Upload Result)
-router.post('/complete/:id', async (req, res) => {
+router.post('/complete/:id', async (req: AuthRequest, res) => {
     const { id } = req.params;
     const { result } = req.body;
 
@@ -33,6 +35,7 @@ router.post('/complete/:id', async (req, res) => {
                 result,
             },
         });
+        await recordAudit(req, 'LAB_ORDER_COMPLETED', id, { opdVisitId: order.opdVisitId });
         res.json(order);
     } catch (error) {
         res.status(500).json({ error: 'Failed to complete order' });

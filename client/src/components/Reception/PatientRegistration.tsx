@@ -9,6 +9,8 @@ const PatientRegistration: React.FC = () => {
         gender: 'Male',
         phone: '',
         address: '',
+        bloodGroup: '',
+        emergencyContact: '',
         // Vitals
         weight: '',
         bp: '',
@@ -58,7 +60,7 @@ const PatientRegistration: React.FC = () => {
 
             setLastToken(visit.tokenNo);
             setFormData({
-                name: '', age: '', gender: 'Male', phone: '', address: '',
+                name: '', age: '', gender: 'Male', phone: '', address: '', bloodGroup: '', emergencyContact: '',
                 weight: '', bp: '', sugar: '', temp: '',
                 preExistingDiseases: '', allergies: '', isPregnant: false, patientType: 'OPD'
             });
@@ -122,6 +124,35 @@ const PatientRegistration: React.FC = () => {
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                 className="mt-1 block w-full border rounded-md shadow-sm p-2"
                                 required
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Blood Group</label>
+                            <select
+                                value={formData.bloodGroup}
+                                onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                                className="mt-1 block w-full border rounded-md shadow-sm p-2"
+                            >
+                                <option value="">Select</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+                            <input
+                                type="tel"
+                                value={formData.emergencyContact}
+                                onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
+                                className="mt-1 block w-full border rounded-md shadow-sm p-2"
                             />
                         </div>
                     </div>

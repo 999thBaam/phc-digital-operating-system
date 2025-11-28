@@ -9,6 +9,12 @@ interface OPDVisit {
         name: string;
         age: number;
         gender: string;
+        weight?: number;
+        bp?: string;
+        temp?: number;
+        sugar?: string;
+        bloodGroup?: string;
+        emergencyContact?: string;
     };
     symptoms: string;
 }
@@ -93,7 +99,20 @@ const OPDQueue: React.FC = () => {
 };
 
 const ConsultationForm: React.FC<{ visit: OPDVisit; token: string; onComplete: () => void }> = ({ visit, token, onComplete }) => {
-    const [vitals, setVitals] = useState({ weight: '', bp: '', temp: '' });
+    const [vitals, setVitals] = useState({
+        weight: visit.patient.weight?.toString() || '',
+        bp: visit.patient.bp || '',
+        temp: visit.patient.temp?.toString() || ''
+    });
+
+    useEffect(() => {
+        setVitals({
+            weight: visit.patient.weight?.toString() || '',
+            bp: visit.patient.bp || '',
+            temp: visit.patient.temp?.toString() || ''
+        });
+    }, [visit]);
+
     const [diagnosis, setDiagnosis] = useState('');
     const [prescription, setPrescription] = useState('');
     const [labTests, setLabTests] = useState<string[]>([]);

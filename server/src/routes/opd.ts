@@ -1,10 +1,12 @@
 import express from 'express';
 import prisma from '../utils/prisma';
+import { AuthRequest } from '../middleware/auth';
+import { recordAudit } from '../utils/auditLogger';
 
 const router = express.Router();
 
 // Create OPD Token (Visit)
-router.post('/visit', async (req, res) => {
+router.post('/visit', async (req: AuthRequest, res) => {
     const { patientId, symptoms } = req.body;
 
     try {
@@ -30,7 +32,7 @@ router.post('/visit', async (req, res) => {
                 symptoms,
             },
         });
-
+        await recordAudit(req, 'OPD_TOKEN_CREATED', visit.id, { patientId, tokenNo });
         res.status(201).json(visit);
     } catch (error) {
         res.status(400).json({ error: 'Failed to generate token' });
@@ -62,7 +64,7 @@ router.get('/queue', async (req, res) => {
 });
 
 // Complete Consultation
-router.post('/consult/:id', async (req, res) => {
+router.post('/consult/:id', async (req: AuthRequest, res) => {
     const { id } = req.params;
     const { vitals, diagnosis, prescription, labTests } = req.body;
 
@@ -89,6 +91,12 @@ router.post('/consult/:id', async (req, res) => {
                 },
             });
         }
+        await recordAudit(req, 'OPD_CONSULT_COMPLETED', id, {
+            diagnosis,
+            labTests: labTests?.length || 0,
+            prescribed: Boolean(prescription),
+        });
+
 
         // Create lab orders if provided
         if (labTests && Array.isArray(labTests) && labTests.length > 0) {

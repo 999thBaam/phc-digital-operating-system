@@ -37,7 +37,7 @@ A comprehensive digital management system for Primary Health Care Centres.
 
 1. **Clone and Navigate**
    ```bash
-   cd "Sanjeevani OS"
+   cd "phc-digital-operating-system"
    ```
 
 2. **Server Setup**
@@ -65,10 +65,13 @@ A comprehensive digital management system for Primary Health Care Centres.
 
 ## Default Credentials
 
-- **Email**: admin@phc.com
-- **Password**: admin123
-- **Role**: ADMIN
+All demo users share the same password `admin123` so you can quickly log in with the correct role:
 
+- **Admin**: `admin@phc.com`
+- **Doctor**: `doctor@phc.com`
+- **Nurse/Reception**: `nurse@phc.com`
+- **Lab Technician**: `lab@phc.com`
+- **Pharmacist**: `pharma@phc.com`
 ## Usage
 
 1. **Login** at http://localhost:5173/login
@@ -78,6 +81,10 @@ A comprehensive digital management system for Primary Health Care Centres.
 5. **Lab Tech** views pending tests and uploads results
 6. **Pharmacist** dispenses medicines
 7. **Nurse/Admin** manages bed admissions and discharges
+
+### How login and roles work
+- All users (doctor, nurse, lab tech, pharmacist, admin) authenticate through the same **POST /api/auth/login** endpoint. The server signs a JWT that embeds the user id, name, and **role** in the token payload. When the token is presented, Express middleware (`authenticateToken`) verifies it and attaches the decoded role to the request so downstream handlers know who is calling.
+- Each feature router is wrapped with `requireRole([...])`, which checks the decoded role and only allows the permitted roles to proceed (for example, lab routes allow `ADMIN`, `LAB_TECH`, or `DOCTOR`, while pharmacy routes allow `ADMIN` or `PHARMACIST`). The shared login path plus per-route guards ensure every role uses the same login flow but is constrained to the right capabilities.
 
 ## API Endpoints
 

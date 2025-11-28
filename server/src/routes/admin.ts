@@ -1,6 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma';
+import { recordAudit } from '../utils/auditLogger';
+import { AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -19,13 +21,14 @@ router.get('/users', async (req, res) => {
 });
 
 // Create user
-router.post('/users', async (req, res) => {
+router.post('/users', async (req: AuthRequest, res) => {
     const { name, email, password, role } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await prisma.user.create({
             data: { name, email, password: hashedPassword, role },
         });
+        await recordAudit(req, 'USER_CREATED', user.id, { role });
         res.status(201).json({ message: 'User created', userId: user.id });
     } catch (error) {
         res.status(400).json({ error: 'Failed to create user' });

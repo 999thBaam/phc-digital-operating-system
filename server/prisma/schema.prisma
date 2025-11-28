@@ -27,6 +27,8 @@ model Patient {
   gender    String
   phone     String
   address   String?
+  bloodGroup String?
+  emergencyContact String?
   
   // Vitals (captured at registration)
   weight    Float?
