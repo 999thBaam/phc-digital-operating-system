@@ -1,5 +1,7 @@
 import express from 'express';
 import prisma from '../utils/prisma';
+import { AuthRequest } from '../middleware/auth';
+import { recordAudit } from '../utils/auditLogger';
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ router.get('/', async (req, res) => {
 });
 
 // Initialize Beds (One-time setup, or admin action)
-router.post('/init', async (req, res) => {
+router.post('/init', async (req: AuthRequest, res) => {
     try {
         // Create 5 beds if not exist
         const count = await prisma.bed.count();
@@ -31,6 +33,7 @@ router.post('/init', async (req, res) => {
                 await prisma.bed.create({ data: { number: `Bed ${i}` } });
             }
         }
+        await recordAudit(req, 'BED_INIT', undefined, { created: count === 0 ? 5 : 0 });
         res.json({ message: 'Beds initialized' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to init beds' });
@@ -38,7 +41,7 @@ router.post('/init', async (req, res) => {
 });
 
 // Admit Patient
-router.post('/admit', async (req, res) => {
+router.post('/admit', async (req: AuthRequest, res) => {
     const { patientId, bedId } = req.body;
     try {
         await prisma.$transaction([
@@ -51,6 +54,7 @@ router.post('/admit', async (req, res) => {
                 },
             }),
         ]);
+        await recordAudit(req, 'PATIENT_ADMITTED', bedId, { patientId });
         res.json({ message: 'Admitted' });
     } catch (error) {
         res.status(500).json({ error: 'Admission failed' });
@@ -58,7 +62,7 @@ router.post('/admit', async (req, res) => {
 });
 
 // Discharge Patient
-router.post('/discharge/:bedId', async (req, res) => {
+router.post('/discharge/:bedId', async (req: AuthRequest, res) => {
     const { bedId } = req.params;
     try {
         // Find active admission for this bed
@@ -75,6 +79,7 @@ router.post('/discharge/:bedId', async (req, res) => {
                 data: { status: 'DISCHARGED', dischargedAt: new Date() },
             }),
         ]);
+        await recordAudit(req, 'PATIENT_DISCHARGED', bedId, { patientId: admission.patientId });
         res.json({ message: 'Discharged' });
     } catch (error) {
         res.status(500).json({ error: 'Discharge failed' });
