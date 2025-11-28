@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   // ADMIN, DOCTOR, NURSE, LAB_TECH, PHARMACIST
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Patient {
+  id        String   @id @default(uuid())
+  name      String
+  age       Int
+  gender    String
+  phone     String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  opdVisits OPDVisit[]
+  admissions Admission[]
+}
+
+model OPDVisit {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  tokenNo   Int
+  status    String   // WAITING, IN_CONSULTATION, COMPLETED
+  
+  // Vitals
+  weight    Float?
+  bp        String?
+  sugar     String?
+  temp      Float?
+  
+  symptoms  String?
+  diagnosis String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prescriptions Prescription[]
+  labOrders     LabOrder[]
+}
+
+model LabOrder {
+  id        String   @id @default(uuid())
+  opdVisitId String
+  opdVisit  OPDVisit @relation(fields: [opdVisitId], references: [id])
+  testName  String
+  status    String   // PENDING, COMPLETED
+  result    String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Prescription {
+  id        String   @id @default(uuid())
+  opdVisitId String
+  opdVisit  OPDVisit @relation(fields: [opdVisitId], references: [id])
+  medicine  String
+  dosage    String
+  status    String   // PENDING, DISPENSED
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bed {
+  id        String   @id @default(uuid())
+  number    String   @unique
+  isOccupied Boolean @default(false)
+  
+  admissions Admission[]
+}
+
+model Admission {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  bedId     String
+  bed       Bed      @relation(fields: [bedId], references: [id])
+  
+  admittedAt DateTime @default(now())
+  dischargedAt DateTime?
+  status    String   // ADMITTED, DISCHARGED
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  actorId   String
+  details   String
+  createdAt DateTime @default(now())
+}
