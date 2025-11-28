@@ -1,5 +1,7 @@
 import express from 'express';
 import prisma from '../utils/prisma';
+import { AuthRequest } from '../middleware/auth';
+import { recordAudit } from '../utils/auditLogger';
 
 const router = express.Router();
 
@@ -26,12 +28,13 @@ router.get('/search', async (req, res) => {
 });
 
 // Create patient
-router.post('/', async (req, res) => {
+router.post('/', async (req: AuthRequest, res) => {
     const { name, age, gender, phone, address } = req.body;
     try {
         const patient = await prisma.patient.create({
             data: { name, age: Number(age), gender, phone, address },
         });
+        await recordAudit(req, 'PATIENT_REGISTERED', patient.id, { gender, phone });
         res.status(201).json(patient);
     } catch (error) {
         res.status(400).json({ error: 'Failed to create patient' });
