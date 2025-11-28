@@ -4,17 +4,10 @@ import prisma from '../utils/prisma';
 
 const router = express.Router();
 
-// Middleware to check if user is admin (simplified for MVP)
-const isAdmin = async (req: any, res: any, next: any) => {
-    // In a real app, verify JWT and check role here.
-    // For now, we assume the auth middleware (to be added) handles user attachment
-    // But since we haven't added auth middleware globally yet, we'll skip for now or add a basic check if we had the user.
-    // We'll implement a proper auth middleware next.
-    next();
-};
+// All admin routes are protected by requireRole(['ADMIN']) in app.ts
 
 // Get all users
-router.get('/users', isAdmin, async (req, res) => {
+router.get('/users', async (req, res) => {
     try {
         const users = await prisma.user.findMany({
             select: { id: true, name: true, email: true, role: true, createdAt: true },
@@ -26,7 +19,7 @@ router.get('/users', isAdmin, async (req, res) => {
 });
 
 // Create user
-router.post('/users', isAdmin, async (req, res) => {
+router.post('/users', async (req, res) => {
     const { name, email, password, role } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);

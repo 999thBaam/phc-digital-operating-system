@@ -96,6 +96,30 @@ const ConsultationForm: React.FC<{ visit: OPDVisit; token: string; onComplete: (
     const [vitals, setVitals] = useState({ weight: '', bp: '', temp: '' });
     const [diagnosis, setDiagnosis] = useState('');
     const [prescription, setPrescription] = useState('');
+    const [labTests, setLabTests] = useState<string[]>([]);
+    const [newTest, setNewTest] = useState('');
+
+    const commonTests = [
+        'Complete Blood Count (CBC)',
+        'Blood Sugar (Fasting)',
+        'Blood Sugar (Random)',
+        'Urine Routine',
+        'Hemoglobin',
+        'Malaria Test',
+        'Dengue Test',
+        'Typhoid Test',
+    ];
+
+    const addLabTest = (testName: string) => {
+        if (testName && !labTests.includes(testName)) {
+            setLabTests([...labTests, testName]);
+            setNewTest('');
+        }
+    };
+
+    const removeLabTest = (testName: string) => {
+        setLabTests(labTests.filter(t => t !== testName));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,7 +134,7 @@ const ConsultationForm: React.FC<{ visit: OPDVisit; token: string; onComplete: (
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ vitals, diagnosis, prescription }),
+                body: JSON.stringify({ vitals, diagnosis, prescription, labTests }),
             });
 
             if (res.ok) {
@@ -163,6 +187,39 @@ const ConsultationForm: React.FC<{ visit: OPDVisit; token: string; onComplete: (
                         placeholder="Enter clinical notes and diagnosis..."
                         required
                     />
+                </div>
+
+                {/* Lab Tests */}
+                <div>
+                    <h4 className="font-semibold mb-2">Lab Tests</h4>
+                    <div className="mb-2">
+                        <select
+                            value={newTest}
+                            onChange={(e) => addLabTest(e.target.value)}
+                            className="w-full border p-2 rounded"
+                        >
+                            <option value="">-- Select a test --</option>
+                            {commonTests.map(test => (
+                                <option key={test} value={test}>{test}</option>
+                            ))}
+                        </select>
+                    </div>
+                    {labTests.length > 0 && (
+                        <div className="space-y-2">
+                            {labTests.map(test => (
+                                <div key={test} className="flex justify-between items-center bg-purple-50 p-2 rounded">
+                                    <span className="text-sm">{test}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeLabTest(test)}
+                                        className="text-red-600 text-sm hover:text-red-800"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Prescription */}

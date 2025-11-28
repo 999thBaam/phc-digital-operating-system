@@ -64,7 +64,7 @@ router.get('/queue', async (req, res) => {
 // Complete Consultation
 router.post('/consult/:id', async (req, res) => {
     const { id } = req.params;
-    const { vitals, diagnosis, prescription } = req.body;
+    const { vitals, diagnosis, prescription, labTests } = req.body;
 
     try {
         const visit = await prisma.oPDVisit.update({
@@ -78,14 +78,26 @@ router.post('/consult/:id', async (req, res) => {
             },
         });
 
+        // Create prescription if provided
         if (prescription) {
             await prisma.prescription.create({
                 data: {
                     opdVisitId: id,
-                    medicine: prescription, // Storing as single string for MVP
-                    dosage: '', // Can be parsed if needed
+                    medicine: prescription,
+                    dosage: '',
                     status: 'PENDING',
                 },
+            });
+        }
+
+        // Create lab orders if provided
+        if (labTests && Array.isArray(labTests) && labTests.length > 0) {
+            await prisma.labOrder.createMany({
+                data: labTests.map((testName: string) => ({
+                    opdVisitId: id,
+                    testName,
+                    status: 'PENDING',
+                })),
             });
         }
 

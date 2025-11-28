@@ -27,6 +27,19 @@ model Patient {
   gender    String
   phone     String
   address   String?
+  
+  // Vitals (captured at registration)
+  weight    Float?
+  bp        String?
+  sugar     String?
+  temp      Float?
+  
+  // Medical Background
+  preExistingDiseases String? // Comma-separated or JSON
+  allergies           String? // Comma-separated or JSON
+  isPregnant          Boolean @default(false)
+  patientType         String  @default("OPD") // OPD, ADMITTED, REFERRED
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
