@@ -6,12 +6,12 @@ import { recordAudit } from '../utils/auditLogger';
 const router = express.Router();
 
 // Search patients
-router.get('/search', async (req, res) => {
+router.get('/search', async (req: AuthRequest, res) => {
     const { query } = req.query;
     if (!query) return res.json([]);
 
     try {
-        const patients = await prisma.patient.findMany({
+        const patients = await req.tenantClient.patient.findMany({
             where: {
                 OR: [
                     { name: { contains: String(query) } }, // Removed mode: 'insensitive' for SQLite compatibility if needed, but Prisma usually handles it.
@@ -35,7 +35,7 @@ router.post('/', async (req: AuthRequest, res) => {
         preExistingDiseases, allergies, isPregnant, patientType
     } = req.body;
     try {
-        const patient = await prisma.patient.create({
+        const patient = await req.tenantClient.patient.create({
             data: {
                 name, age: Number(age), gender, phone, address, bloodGroup, emergencyContact,
                 weight: weight ? Number(weight) : null,

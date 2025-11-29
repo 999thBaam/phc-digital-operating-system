@@ -6,9 +6,9 @@ import { recordAudit } from '../utils/auditLogger';
 const router = express.Router();
 
 // Get All Beds
-router.get('/', async (req, res) => {
+router.get('/', async (req: AuthRequest, res) => {
     try {
-        const beds = await prisma.bed.findMany({
+        const beds = await req.tenantClient.bed.findMany({
             include: {
                 admissions: {
                     where: { status: 'ADMITTED' },
@@ -27,10 +27,10 @@ router.get('/', async (req, res) => {
 router.post('/init', async (req: AuthRequest, res) => {
     try {
         // Create 5 beds if not exist
-        const count = await prisma.bed.count();
+        const count = await req.tenantClient.bed.count();
         if (count === 0) {
             for (let i = 1; i <= 5; i++) {
-                await prisma.bed.create({ data: { number: `Bed ${i}` } });
+                await req.tenantClient.bed.create({ data: { number: `Bed ${i}` } });
             }
         }
         await recordAudit(req, 'BED_INIT', undefined, { created: count === 0 ? 5 : 0 });
@@ -44,9 +44,9 @@ router.post('/init', async (req: AuthRequest, res) => {
 router.post('/admit', async (req: AuthRequest, res) => {
     const { patientId, bedId } = req.body;
     try {
-        await prisma.$transaction([
-            prisma.bed.update({ where: { id: bedId }, data: { isOccupied: true } }),
-            prisma.admission.create({
+        await req.tenantClient.$transaction([
+            req.tenantClient.bed.update({ where: { id: bedId }, data: { isOccupied: true } }),
+            req.tenantClient.admission.create({
                 data: {
                     patientId,
                     bedId,
@@ -66,15 +66,15 @@ router.post('/discharge/:bedId', async (req: AuthRequest, res) => {
     const { bedId } = req.params;
     try {
         // Find active admission for this bed
-        const admission = await prisma.admission.findFirst({
+        const admission = await req.tenantClient.admission.findFirst({
             where: { bedId, status: 'ADMITTED' },
         });
 
         if (!admission) return res.status(400).json({ error: 'No active admission' });
 
-        await prisma.$transaction([
-            prisma.bed.update({ where: { id: bedId }, data: { isOccupied: false } }),
-            prisma.admission.update({
+        await req.tenantClient.$transaction([
+            req.tenantClient.bed.update({ where: { id: bedId }, data: { isOccupied: false } }),
+            req.tenantClient.admission.update({
                 where: { id: admission.id },
                 data: { status: 'DISCHARGED', dischargedAt: new Date() },
             }),

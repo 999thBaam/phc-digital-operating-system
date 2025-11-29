@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [licenseNumber, setLicenseNumber] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Login: React.FC = () => {
             const response = await fetch('http://localhost:3000/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, licenseNumber }),
             });
 
             const data = await response.json();
@@ -24,8 +25,12 @@ const Login: React.FC = () => {
 
             login(data.token, data.user);
             navigate('/dashboard');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred');
+            }
         }
     };
 
@@ -35,6 +40,16 @@ const Login: React.FC = () => {
                 <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">PHC Login</h2>
                 {error && <p className="text-red-500 mb-4 text-sm text-center">{error}</p>}
                 <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2">PHC License Number</label>
+                        <input
+                            type="text"
+                            value={licenseNumber}
+                            onChange={(e) => setLicenseNumber(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Optional for Super Admin"
+                        />
+                    </div>
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
                         <input
@@ -61,6 +76,15 @@ const Login: React.FC = () => {
                     >
                         Login
                     </button>
+
+                    <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600">
+                            New PHC?{' '}
+                            <a href="/register" className="text-blue-600 hover:underline font-semibold">
+                                Register here
+                            </a>
+                        </p>
+                    </div>
                 </form>
             </div>
         </div>

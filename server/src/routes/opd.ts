@@ -14,7 +14,7 @@ router.post('/visit', async (req: AuthRequest, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const count = await prisma.oPDVisit.count({
+        const count = await req.tenantClient.oPDVisit.count({
             where: {
                 createdAt: {
                     gte: today,
@@ -24,7 +24,7 @@ router.post('/visit', async (req: AuthRequest, res) => {
 
         const tokenNo = count + 1;
 
-        const visit = await prisma.oPDVisit.create({
+        const visit = await req.tenantClient.oPDVisit.create({
             data: {
                 patientId,
                 tokenNo,
@@ -40,12 +40,12 @@ router.post('/visit', async (req: AuthRequest, res) => {
 });
 
 // Get OPD Queue
-router.get('/queue', async (req, res) => {
+router.get('/queue', async (req: AuthRequest, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const queue = await prisma.oPDVisit.findMany({
+        const queue = await req.tenantClient.oPDVisit.findMany({
             where: {
                 createdAt: { gte: today },
                 status: { not: 'COMPLETED' },
@@ -69,7 +69,7 @@ router.post('/consult/:id', async (req: AuthRequest, res) => {
     const { vitals, diagnosis, prescription, labTests } = req.body;
 
     try {
-        const visit = await prisma.oPDVisit.update({
+        const visit = await req.tenantClient.oPDVisit.update({
             where: { id },
             data: {
                 status: 'COMPLETED',
@@ -82,7 +82,7 @@ router.post('/consult/:id', async (req: AuthRequest, res) => {
 
         // Create prescription if provided
         if (prescription) {
-            await prisma.prescription.create({
+            await req.tenantClient.prescription.create({
                 data: {
                     opdVisitId: id,
                     medicine: prescription,
@@ -100,7 +100,7 @@ router.post('/consult/:id', async (req: AuthRequest, res) => {
 
         // Create lab orders if provided
         if (labTests && Array.isArray(labTests) && labTests.length > 0) {
-            await prisma.labOrder.createMany({
+            await req.tenantClient.labOrder.createMany({
                 data: labTests.map((testName: string) => ({
                     opdVisitId: id,
                     testName,

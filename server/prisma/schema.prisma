@@ -3,13 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["public", "tenant"]
 }
 
 // ============================================
@@ -29,7 +27,7 @@ model PHC {
   updatedAt       DateTime  @updatedAt
   
   @@map("phc")
-  @@schema("public")
+
 }
 
 enum PHCStatus {
@@ -39,7 +37,7 @@ enum PHCStatus {
   SUSPENDED
   INACTIVE
   
-  @@schema("public")
+
 }
 
 model SuperAdmin {
@@ -51,7 +49,7 @@ model SuperAdmin {
   updatedAt DateTime @updatedAt
   
   @@map("super_admin")
-  @@schema("public")
+
 }
 
 model PlatformAuditLog {
@@ -63,7 +61,7 @@ model PlatformAuditLog {
   createdAt DateTime @default(now())
   
   @@map("platform_audit_log")
-  @@schema("public")
+
 }
 
 // ============================================
@@ -79,7 +77,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  @@schema("tenant")
+
 }
 
 model Patient {
@@ -110,7 +108,7 @@ model Patient {
   opdVisits OPDVisit[]
   admissions Admission[]
   
-  @@schema("tenant")
+
 }
 
 model OPDVisit {
@@ -135,7 +133,7 @@ model OPDVisit {
   prescriptions Prescription[]
   labOrders     LabOrder[]
   
-  @@schema("tenant")
+
 }
 
 model LabOrder {
@@ -149,7 +147,7 @@ model LabOrder {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  @@schema("tenant")
+
 }
 
 model Prescription {
@@ -163,7 +161,7 @@ model Prescription {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  @@schema("tenant")
+
 }
 
 model Bed {
@@ -173,7 +171,7 @@ model Bed {
   
   admissions Admission[]
   
-  @@schema("tenant")
+
 }
 
 model Admission {
@@ -187,7 +185,7 @@ model Admission {
   dischargedAt DateTime?
   status    String   // ADMITTED, DISCHARGED
   
-  @@schema("tenant")
+
 }
 
 model AuditLog {
@@ -197,5 +195,5 @@ model AuditLog {
   details   String
   createdAt DateTime @default(now())
   
-  @@schema("tenant")
+
 }

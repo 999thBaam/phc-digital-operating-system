@@ -7,6 +7,7 @@ import OPDQueue from '../components/Doctor/OPDQueue';
 import LabDashboard from '../components/Lab/LabDashboard';
 import PharmacyDashboard from '../components/Pharmacy/PharmacyDashboard';
 import BedManagement from '../components/Beds/BedManagement';
+import SuperAdminDashboard from '../components/SuperAdmin/SuperAdminDashboard';
 
 const Dashboard: React.FC = () => {
     const { user, logout, token } = useAuth();
@@ -17,7 +18,7 @@ const Dashboard: React.FC = () => {
     });
 
     useEffect(() => {
-        if (user) {
+        if (user && user.role !== 'SUPER_ADMIN') {
             fetchStats();
             const interval = setInterval(fetchStats, 10000); // Update every 10s
             return () => clearInterval(interval);
@@ -94,33 +95,39 @@ const Dashboard: React.FC = () => {
                 </div>
             </nav>
             <main className="p-8">
-                <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-2">Patients</h3>
-                        <p className="text-3xl font-bold text-blue-600">{stats.patients}</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-2">OPD Queue</h3>
-                        <p className="text-3xl font-bold text-green-600">{stats.opdQueue}</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-2">Pending Labs</h3>
-                        <p className="text-3xl font-bold text-purple-600">{stats.pendingLabs}</p>
-                    </div>
-                </div>
-
-                {user?.role === 'ADMIN' && (
+                {user?.role === 'SUPER_ADMIN' ? (
+                    <SuperAdminDashboard />
+                ) : (
                     <>
-                        <UserManagement />
-                        <Reports />
+                        <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div className="bg-white p-6 rounded-lg shadow">
+                                <h3 className="text-lg font-semibold mb-2">Patients</h3>
+                                <p className="text-3xl font-bold text-blue-600">{stats.patients}</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-lg shadow">
+                                <h3 className="text-lg font-semibold mb-2">OPD Queue</h3>
+                                <p className="text-3xl font-bold text-green-600">{stats.opdQueue}</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-lg shadow">
+                                <h3 className="text-lg font-semibold mb-2">Pending Labs</h3>
+                                <p className="text-3xl font-bold text-purple-600">{stats.pendingLabs}</p>
+                            </div>
+                        </div>
+
+                        {user?.role === 'ADMIN' && (
+                            <>
+                                <UserManagement />
+                                <Reports />
+                            </>
+                        )}
+                        {(user?.role === 'NURSE' || user?.role === 'ADMIN') && <PatientRegistration />}
+                        {(user?.role === 'DOCTOR' || user?.role === 'ADMIN') && <OPDQueue />}
+                        {(user?.role === 'LAB_TECH' || user?.role === 'ADMIN') && <LabDashboard />}
+                        {(user?.role === 'PHARMACIST' || user?.role === 'ADMIN') && <PharmacyDashboard />}
+                        {(user?.role === 'NURSE' || user?.role === 'ADMIN') && <BedManagement />}
                     </>
                 )}
-                {(user?.role === 'NURSE' || user?.role === 'ADMIN') && <PatientRegistration />}
-                {(user?.role === 'DOCTOR' || user?.role === 'ADMIN') && <OPDQueue />}
-                {(user?.role === 'LAB_TECH' || user?.role === 'ADMIN') && <LabDashboard />}
-                {(user?.role === 'PHARMACIST' || user?.role === 'ADMIN') && <PharmacyDashboard />}
-                {(user?.role === 'NURSE' || user?.role === 'ADMIN') && <BedManagement />}
             </main>
         </div>
     );

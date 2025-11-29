@@ -9,9 +9,9 @@ const router = express.Router();
 // All admin routes are protected by requireRole(['ADMIN']) in app.ts
 
 // Get all users
-router.get('/users', async (req, res) => {
+router.get('/users', async (req: AuthRequest, res) => {
     try {
-        const users = await prisma.user.findMany({
+        const users = await req.tenantClient.user.findMany({
             select: { id: true, name: true, email: true, role: true, createdAt: true },
         });
         res.json(users);
@@ -25,7 +25,7 @@ router.post('/users', async (req: AuthRequest, res) => {
     const { name, email, password, role } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await prisma.user.create({
+        const user = await req.tenantClient.user.create({
             data: { name, email, password: hashedPassword, role },
         });
         await recordAudit(req, 'USER_CREATED', user.id, { role });

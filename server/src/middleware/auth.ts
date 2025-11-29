@@ -8,7 +8,10 @@ export interface AuthRequest extends Request {
         userId: string;
         role: string;
         name: string;
+        schemaName?: string;
+        phcId?: string;
     };
+    tenantClient?: any; // typed as any to avoid circular dependency or complex type imports
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {

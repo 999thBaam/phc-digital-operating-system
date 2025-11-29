@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../utils/prisma';
-import { requireRole } from '../middleware/auth';
+import { requireRole, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -13,12 +13,12 @@ const toCSV = (data: any[]) => {
 };
 
 // Daily OPD List
-router.get('/opd', requireRole(['ADMIN']), async (req, res) => {
+router.get('/opd', requireRole(['ADMIN']), async (req: AuthRequest, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const visits = await prisma.oPDVisit.findMany({
+        const visits = await req.tenantClient.oPDVisit.findMany({
             where: {
                 createdAt: {
                     gte: today
@@ -29,7 +29,7 @@ router.get('/opd', requireRole(['ADMIN']), async (req, res) => {
             }
         });
 
-        const data = visits.map(v => ({
+        const data = visits.map((v: any) => ({
             Token: v.tokenNo,
             PatientName: v.patient.name,
             Age: v.patient.age,
@@ -48,9 +48,9 @@ router.get('/opd', requireRole(['ADMIN']), async (req, res) => {
 });
 
 // Admitted Patient List
-router.get('/admissions', requireRole(['ADMIN']), async (req, res) => {
+router.get('/admissions', requireRole(['ADMIN']), async (req: AuthRequest, res) => {
     try {
-        const admissions = await prisma.admission.findMany({
+        const admissions = await req.tenantClient.admission.findMany({
             where: {
                 status: 'ADMITTED'
             },
@@ -60,7 +60,7 @@ router.get('/admissions', requireRole(['ADMIN']), async (req, res) => {
             }
         });
 
-        const data = admissions.map(a => ({
+        const data = admissions.map((a: any) => ({
             PatientName: a.patient.name,
             BedNumber: a.bed.number,
             AdmittedAt: a.admittedAt.toISOString(),
@@ -76,12 +76,12 @@ router.get('/admissions', requireRole(['ADMIN']), async (req, res) => {
 });
 
 // Medicine Dispensed List
-router.get('/pharmacy', requireRole(['ADMIN']), async (req, res) => {
+router.get('/pharmacy', requireRole(['ADMIN']), async (req: AuthRequest, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const prescriptions = await prisma.prescription.findMany({
+        const prescriptions = await req.tenantClient.prescription.findMany({
             where: {
                 status: 'DISPENSED',
                 updatedAt: {
@@ -97,7 +97,7 @@ router.get('/pharmacy', requireRole(['ADMIN']), async (req, res) => {
             }
         });
 
-        const data = prescriptions.map(p => ({
+        const data = prescriptions.map((p: any) => ({
             PatientName: p.opdVisit.patient.name,
             Medicine: p.medicine,
             Dosage: p.dosage,
@@ -113,12 +113,12 @@ router.get('/pharmacy', requireRole(['ADMIN']), async (req, res) => {
 });
 
 // Lab Test Summary
-router.get('/lab', requireRole(['ADMIN']), async (req, res) => {
+router.get('/lab', requireRole(['ADMIN']), async (req: AuthRequest, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const orders = await prisma.labOrder.findMany({
+        const orders = await req.tenantClient.labOrder.findMany({
             where: {
                 updatedAt: {
                     gte: today
@@ -133,7 +133,7 @@ router.get('/lab', requireRole(['ADMIN']), async (req, res) => {
             }
         });
 
-        const data = orders.map(o => ({
+        const data = orders.map((o: any) => ({
             PatientName: o.opdVisit.patient.name,
             TestName: o.testName,
             Status: o.status,

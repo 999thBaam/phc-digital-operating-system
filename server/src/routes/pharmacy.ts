@@ -6,9 +6,9 @@ import { recordAudit } from '../utils/auditLogger';
 const router = express.Router();
 
 // Get Pending Prescriptions
-router.get('/prescriptions', async (req, res) => {
+router.get('/prescriptions', async (req: AuthRequest, res) => {
     try {
-        const prescriptions = await prisma.prescription.findMany({
+        const prescriptions = await req.tenantClient.prescription.findMany({
             where: { status: 'PENDING' },
             include: {
                 opdVisit: {
@@ -27,7 +27,7 @@ router.post('/dispense/:id', async (req: AuthRequest, res) => {
     const { id } = req.params;
 
     try {
-        const prescription = await prisma.prescription.update({
+        const prescription = await req.tenantClient.prescription.update({
             where: { id },
             data: { status: 'DISPENSED' },
         });
