@@ -3,12 +3,72 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["public", "tenant"]
 }
+
+// ============================================
+// PLATFORM-LEVEL MODELS (public schema)
+// ============================================
+
+model PHC {
+  id              String    @id @default(uuid())
+  name            String
+  address         String
+  contactNumber   String
+  licenseNumber   String    @unique
+  adminEmail      String
+  status          PHCStatus @default(PENDING)
+  schemaName      String    @unique // e.g., "phc_abc123"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("phc")
+  @@schema("public")
+}
+
+enum PHCStatus {
+  PENDING
+  VERIFIED
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+  
+  @@schema("public")
+}
+
+model SuperAdmin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("super_admin")
+  @@schema("public")
+}
+
+model PlatformAuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  actorId   String
+  actorType String   // SUPER_ADMIN, SYSTEM
+  details   String
+  createdAt DateTime @default(now())
+  
+  @@map("platform_audit_log")
+  @@schema("public")
+}
+
+// ============================================
+// TENANT-LEVEL MODELS (per-PHC schema)
+// ============================================
 
 model User {
   id        String   @id @default(uuid())
@@ -18,6 +78,8 @@ model User {
   role      String   // ADMIN, DOCTOR, NURSE, LAB_TECH, PHARMACIST
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@schema("tenant")
 }
 
 model Patient {
@@ -47,6 +109,8 @@ model Patient {
   
   opdVisits OPDVisit[]
   admissions Admission[]
+  
+  @@schema("tenant")
 }
 
 model OPDVisit {
@@ -70,6 +134,8 @@ model OPDVisit {
 
   prescriptions Prescription[]
   labOrders     LabOrder[]
+  
+  @@schema("tenant")
 }
 
 model LabOrder {
@@ -82,6 +148,8 @@ model LabOrder {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@schema("tenant")
 }
 
 model Prescription {
@@ -94,6 +162,8 @@ model Prescription {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@schema("tenant")
 }
 
 model Bed {
@@ -102,6 +172,8 @@ model Bed {
   isOccupied Boolean @default(false)
   
   admissions Admission[]
+  
+  @@schema("tenant")
 }
 
 model Admission {
@@ -114,6 +186,8 @@ model Admission {
   admittedAt DateTime @default(now())
   dischargedAt DateTime?
   status    String   // ADMITTED, DISCHARGED
+  
+  @@schema("tenant")
 }
 
 model AuditLog {
@@ -122,4 +196,6 @@ model AuditLog {
   actorId   String
   details   String
   createdAt DateTime @default(now())
+  
+  @@schema("tenant")
 }
